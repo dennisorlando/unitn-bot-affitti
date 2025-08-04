@@ -1,0 +1,46 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    command: --logpath /var/log/mongodb/mongod.log
+
+  unitn-rents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python-app
+    restart: unless-stopped
+    ports:
+      - "9009:9009"
+    volumes:
+      - .:/app
+    depends_on:
+      - mongo
+      - ollama
+    command: ["python", "init.py"]
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - PYTHONUNBUFFERED=1
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  mongo_data:
+  ollama_data:

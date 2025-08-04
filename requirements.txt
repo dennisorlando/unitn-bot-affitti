@@ -1,0 +1,5 @@
+pyyaml
+pymongo
+telethon
+flask[async]
+requests
