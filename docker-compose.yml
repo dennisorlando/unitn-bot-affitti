@@ -24,6 +24,7 @@ services:
     command: ["python", "init.py"]
     environment:
       - MONGO_URL=mongodb://mongo:27017
+      - PYTHONUNBUFFERED=1
 
   ollama:
     image: ollama/ollama
@@ -31,13 +32,13 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
-   # deploy:
-   #   resources:
-   #     reservations:
-   #       devices:
-   #         - driver: nvidia
-   #           count: 1
-   #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
   mongo_data:

@@ -2,3 +2,4 @@ pyyaml
 pymongo
 telethon
 flask
+requests

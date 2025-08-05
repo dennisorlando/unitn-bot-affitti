@@ -4,6 +4,7 @@ from pymongo.errors import DuplicateKeyError
 from flask import Flask, jsonify, request, Response
 from telethon import TelegramClient
 
+from ai_pipeline import process_message
 from db_helpers import db_store_messages_batch, db_get_last_message_date
 
 def init_app():
@@ -13,7 +14,6 @@ def init_app():
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
     app.config["telegram"] = config["telegram"]
-    print(app.config["telegram"])
     
     # Init mongodb client
     mdb_client = MongoClient("mongodb://localhost:27017", 
@@ -105,8 +105,13 @@ def init_app():
         telegram_client.disconnect()
         return jsonify(result_stats), 200
 
-
-
+    # Manually extract data from single message
+    @app.route("/extract", methods=["GET"])
+    def extract():
+        print("FUCK YOUUUUUUUUUUUUUUUUUUUU")
+        msg = request.get_json(force=True)["message"]
+        res = process_message(db, msg)
+        return jsonify(res), 200
     return app
 
 
