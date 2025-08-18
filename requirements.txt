@@ -3,3 +3,4 @@ pymongo
 telethon
 flask[async]
 requests
+flask-cors

@@ -3,6 +3,7 @@ import time
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
 from telethon import TelegramClient
 
 from ai_pipeline import process_message
@@ -10,6 +11,7 @@ from db_helpers import db_store_messages_batch, db_get_last_message_date
 
 def init_app():
     app = Flask(__name__)
+    CORS(app)
 
     # Init config
     with open("config.yaml", "r") as f:
@@ -137,7 +139,7 @@ def init_app():
                 # Mark as processed
                 db["messages"].update_one(
                     {"_id": message["_id"]}, 
-                    {"$set": {"__processed": True}}
+                    {"$set": {"__processed": True, "extracted_features": results[-1]["extracted_features"]}}
                 )
                 processed_count += 1
                 print(f"Processed {processed_count} messages.")
@@ -148,6 +150,33 @@ def init_app():
         print(f"Processed {processed_count} messages in {elapsed:.6f} seconds.")
         return jsonify({"processed_messages": results, "elapsed_time": elapsed }), 200
 
+
+
+    # Returns the total number of messages
+    @app.route("/messages/count/total", methods=["GET"])
+    def get_total_messages_count():
+        count = db["messages"].count_documents({})
+        return jsonify({"count": count}), 200
+
+    # Returns the number of processed messages
+    @app.route("/messages/count/processed", methods=["GET"])
+    def get_processed_messages_count():
+        count = db["messages"].count_documents({"__processed": True})
+        return jsonify({"count": count}), 200
+
+
+    # Returns all processed messages
+    @app.route("/processed_messages", methods=["GET"])
+    def fetch_processed_message():
+        
+        processed_messages = db["messages"].find(
+            {"extracted_features": {"$ne": None}},
+            {"extracted_features": 1, "_id": 0} 
+        )
+        
+        # By default, the find method returns a cursor, so we need to iterate on it
+        results = [msg["extracted_features"] for msg in processed_messages]
+        return jsonify(results), 200
 
 
     # Manually extract data from single message, mostly for testing purposes

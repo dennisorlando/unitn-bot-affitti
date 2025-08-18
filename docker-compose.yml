@@ -38,9 +38,25 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu]
+
+  frontend:
+    build:
+      context: ./vuetify-frontend
+      dockerfile: Dockerfile
+    container_name: nuxt-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./vuetify-frontend:/app
+      - node_modules:/app/node_modules
+    depends_on:
+      - unitn-rents
+
 
 volumes:
   mongo_data:
   ollama_data:
+  node_modules:
