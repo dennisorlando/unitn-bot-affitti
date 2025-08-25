@@ -44,6 +44,35 @@
                 style="min-width: 130px;"
                 clearable
             />
+
+            <v-range-slider
+              v-model="selectedPriceRange"
+              :max="maxPrice"
+              :min="0"
+              step="50"
+              label="Price Range"
+              class="align-center"
+              style="min-width: 200px;"
+              thumb-label="always"
+            >
+              <template v-slot:prepend>
+                <span class="text-body-2 font-weight-medium">€{{ selectedPriceRange[0] }}</span>
+              </template>
+              <template v-slot:append>
+                <span class="text-body-2 font-weight-medium">€{{ selectedPriceRange[1] }}</span>
+              </template>
+            </v-range-slider>
+
+            <v-select
+              v-model="sortBy"
+              :items="sortOptions"
+              item-text="title"
+              item-value="value"
+              label="Sort by"
+              variant="outlined"
+              density="compact"
+              style="min-width: 180px;"
+            />
           </div>
         </div>
       </v-col>
@@ -256,6 +285,9 @@ export default {
       searchQuery: '',
       selectedRoomType: null,
       selectedGender: null,
+      selectedPriceRange: [0, 1000],
+      sortBy: 'price-asc',
+      sortDesc: false,
       currentPage: 1,
       itemsPerPage: 12,
 
@@ -269,6 +301,11 @@ export default {
         { title: 'Any', value: 'any' },
         { title: 'Male Only', value: 'male' },
         { title: 'Female Only', value: 'female' }
+      ],
+      
+      sortOptions: [
+        { title: 'Price: Low to High', value: 'price-asc' },
+        { title: 'Price: High to Low', value: 'price-desc' }
       ]
     }
   },
@@ -297,7 +334,37 @@ export default {
         );
       }
 
+      // Price filter
+      filtered = filtered.filter(rental => {
+        if (rental.price_per_month === null) return false;
+        return rental.price_per_month >= this.selectedPriceRange[0] && rental.price_per_month <= this.selectedPriceRange[1];
+      });
+
+      // Sorting
+      if (this.sortBy) {
+        const [field, order] = this.sortBy.split('-');
+        const sortField = field === 'price' ? 'price_per_month' : field;
+        filtered.sort((a, b) => {
+          const valA = a[sortField];
+          const valB = b[sortField];
+          if (valA === null) return 1;
+          if (valB === null) return -1;
+          if (order === 'asc') {
+            return valA - valB;
+          } else {
+            return valB - valA;
+          }
+        });
+      }
+
       return filtered;
+    },
+
+    maxPrice() {
+      if (this.rentals.length === 0) return 1000;
+      return this.rentals.reduce((max, rental) => {
+        return rental.price_per_month > max ? rental.price_per_month : max;
+      }, 0);
     },
 
     totalPages() {
@@ -397,7 +464,9 @@ export default {
   },
 
   mounted() {
-    this.fetchRentals();
+    this.fetchRentals().then(() => {
+      this.selectedPriceRange = [0, this.maxPrice];
+    });
   },
 
   watch: {
@@ -409,6 +478,12 @@ export default {
       this.currentPage = 1;
     },
     selectedGender() {
+      this.currentPage = 1;
+    },
+    selectedPriceRange() {
+      this.currentPage = 1;
+    },
+    sortBy() {
       this.currentPage = 1;
     }
   }

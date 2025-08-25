@@ -96,7 +96,7 @@ def init_app():
             messages = []
             async for msg in telegram_client.iter_messages(dialog,
                                                            offset_date=last_date,
-                                                           limit=30,
+                                                           limit=100,
                                                            ):
                 if last_date and msg.date.replace(tzinfo=None) <= last_date: # filter out the lower bound
                     continue

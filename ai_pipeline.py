@@ -3,7 +3,7 @@ import json
 import re
 
 OLLAMA_URL = "http://ollama:11434/api/generate"
-MODEL_NAME = "gemma3n:e2b"
+MODEL_NAME = "gemma3:4b"
 
 def process_message(db, msg, model='ollama', gemini_key=None):
    
