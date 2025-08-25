@@ -7,7 +7,7 @@ from flask_cors import CORS
 from telethon import TelegramClient
 
 from ai_pipeline import process_message
-from db_helpers import db_store_messages_batch, db_get_last_message_date
+from db_helpers import db_store_messages_batch, db_get_last_message_id
 
 def init_app():
     app = Flask(__name__)
@@ -74,7 +74,6 @@ def init_app():
     @app.route("/sync_messages", methods=["POST"])
     async def sync_messages():
         
-
         # Init Telethon client
         telegram_client = TelegramClient('rent-scraper',
                             app.config["telegram"]["api_id"],
@@ -91,12 +90,12 @@ def init_app():
             chat_name = dialog.name
 
             # Get new messages
-            last_date = db_get_last_message_date(db, chat_name)
-            print(f"- last date: {last_date}")
+            last_id = db_get_last_message_id(db, chat_name)
+            print(f"{dialog.name} - last id: {last_id}")
 
             messages = []
             async for msg in telegram_client.iter_messages(dialog,
-                                                           offset_date=last_date,
+                                                           min_id=last_id,
                                                            limit=100,
                                                            ):
                 messages.append(msg)
@@ -179,7 +178,6 @@ def init_app():
             tmp = msg["extracted_features"]
             tmp["date"] = msg["date"]
             results.append(tmp)
-        print(results)
         return jsonify(results), 200
 
 
