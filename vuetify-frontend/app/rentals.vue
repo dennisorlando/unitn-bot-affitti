@@ -52,7 +52,7 @@
               step="50"
               label="Price Range"
               class="align-center"
-              style="min-width: 200px;"
+              style="min-width: 300px;"
               thumb-label="always"
             >
               <template v-slot:prepend>
@@ -73,6 +73,8 @@
               density="compact"
               style="min-width: 180px;"
             />
+
+            <v-btn @click="fetchRentals" icon="mdi-refresh"></v-btn>
           </div>
         </div>
       </v-col>
@@ -98,7 +100,7 @@
           <v-card-title class="bg-primary text-white d-flex justify-space-between align-center pa-3">
             <div>
               <span class="text-h5 font-weight-bold">
-                €{{ rental.price_per_month || 'N/A' }}
+                €{{ rental.price_per_month === -1 ? '?' : rental.price_per_month }}
               </span>
               <span class="text-body-2 ml-1">/month</span>
             </div>
@@ -231,6 +233,7 @@
           <!-- Actions -->
           <v-card-actions class="pa-3 pt-0">
             <v-spacer />
+            <v-card-subtitle>{{ rental.date ? new Date(rental.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No date' }}</v-card-subtitle>
             <v-btn
                 color="primary"
                 variant="elevated"

@@ -73,6 +73,7 @@ def init_app():
     # Sync messages
     @app.route("/sync_messages", methods=["POST"])
     async def sync_messages():
+        
 
         # Init Telethon client
         telegram_client = TelegramClient('rent-scraper',
@@ -98,8 +99,6 @@ def init_app():
                                                            offset_date=last_date,
                                                            limit=100,
                                                            ):
-                if last_date and msg.date.replace(tzinfo=None) <= last_date: # filter out the lower bound
-                    continue
                 messages.append(msg)
             
             # Store messages
@@ -171,11 +170,16 @@ def init_app():
         
         processed_messages = db["messages"].find(
             {"extracted_features": {"$ne": None}},
-            {"extracted_features": 1, "_id": 0} 
+            {"extracted_features": 1, "date": 1, "_id": 0} 
         )
         
         # By default, the find method returns a cursor, so we need to iterate on it
-        results = [msg["extracted_features"] for msg in processed_messages]
+        results = []
+        for msg in processed_messages:
+            tmp = msg["extracted_features"]
+            tmp["date"] = msg["date"]
+            results.append(tmp)
+        print(results)
         return jsonify(results), 200
 
 

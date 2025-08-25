@@ -11,7 +11,7 @@
             </div>
           </div>
         </div>
-        <v-btn @click="syncMessages" :loading="syncing" color="primary" class="mt-4">
+        <v-btn @click="syncingDialog = true" :loading="syncing" color="primary" class="mt-4">
           Sync Messages
         </v-btn>
       </v-col>
@@ -34,6 +34,8 @@
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
       {{ snackbar.text }}
     </v-snackbar>
+
+    
   </v-container>
 </template>
 
@@ -49,6 +51,7 @@ const snackbar = ref({
   text: '',
   color: '',
 })
+
 
 async function updateData() {
   try {
@@ -70,7 +73,12 @@ async function updateData() {
 async function syncMessages() {
   syncing.value = true
   try {
-    const response = await fetch('http://localhost:9009/sync_messages', { method: 'POST' })
+    const response = await fetch('http://localhost:9009/sync_messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
     if (response.ok) {
       snackbar.value = { show: true, text: 'Messages synced successfully', color: 'success' }
       await updateData()

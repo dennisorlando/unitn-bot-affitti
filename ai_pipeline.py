@@ -17,6 +17,7 @@ def process_message(db, msg, model='ollama', gemini_key=None):
         }
 
     extracted_features = extract_features(msg, model, gemini_key)
+    
     return {
         "message": msg["text"],
         "extracted_features": extracted_features
